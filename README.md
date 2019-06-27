@@ -27,7 +27,7 @@ $ cat inventory/mycluster/group_vars/k8s-cluster/k8s-cluster.yml
 $ ansible-playbook -i inventory/mycluster/hosts.yml --become --become-user=root cluster.yml
 $ ansible-playbook -i inventory/mycluster/inventory.ini --user=app --become --become-user=root cluster.yml
 
-# CI/CD Installation
+# Install Jenkins for CI/CD
 Installing Jenkins - https://medium.com/containerum/configuring-ci-cd-on-kubernetes-with-jenkins-89eab7234270
 
 # Create a development namespace
