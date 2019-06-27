@@ -1,4 +1,4 @@
-This project will create a high-available K8S cluster
+This project is developed to create a highly-available K8S cluster, setup CI/CD, monitoring and logging for guest-book application.
 # Create the compute in GCP
 ansible-playbook gcp-compute.yml 
 # Deploy a Production Ready Kubernetes Cluster
