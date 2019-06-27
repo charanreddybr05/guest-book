@@ -1,34 +1,36 @@
 This project is developed to create a highly-available K8S cluster, setup CI/CD, monitoring and logging for guest-book application.
+
+Prerequisites: 
+# Install Ansible >=2.8 
+
 # Create the compute in GCP
-ansible-playbook gcp-compute.yml 
+$ ansible-playbook gcp-compute.yml 
 # Deploy a Production Ready Kubernetes Cluster
 # Install dependencies from ``requirements.txt``
-sudo pip install -r requirements.txt
+$ sudo pip install -r requirements.txt
 
 # Copy ``inventory/sample`` as ``inventory/mycluster``
-cp -rfp inventory/sample inventory/mycluster
+$ cp -rfp inventory/sample inventory/mycluster
 
 # Update Ansible inventory file with inventory builder
-declare -a IPS=(10.10.1.3 10.10.1.4 10.10.1.5)
-CONFIG_FILE=inventory/mycluster/hosts.yml python3 contrib/inventory_builder/inventory.py ${IPS[@]}
+$ declare -a IPS=(10.10.1.3 10.10.1.4 10.10.1.5)
+$ CONFIG_FILE=inventory/mycluster/hosts.yml python3 contrib/inventory_builder/inventory.py ${IPS[@]}
 
 # Review and change parameters under ``inventory/mycluster/group_vars``
-cat inventory/mycluster/group_vars/all/all.yml
-cat inventory/mycluster/group_vars/k8s-cluster/k8s-cluster.yml
+$ cat inventory/mycluster/group_vars/all/all.yml
+$ cat inventory/mycluster/group_vars/k8s-cluster/k8s-cluster.yml
 
 # Deploy Kubespray with Ansible Playbook - run the playbook as root
 # The option `--become` is required, as for example writing SSL keys in /etc/,
 # installing packages and interacting with various systemd daemons.
 # Without --become the playbook will fail to run!
-ansible-playbook -i inventory/mycluster/hosts.yml --become --become-user=root cluster.yml
-ansible-playbook -i inventory/mycluster/inventory.ini --user=app --become --become-user=root cluster.yml
+$ ansible-playbook -i inventory/mycluster/hosts.yml --become --become-user=root cluster.yml
+$ ansible-playbook -i inventory/mycluster/inventory.ini --user=app --become --become-user=root cluster.yml
 
-2:
-#CI/CD Installation
+# CI/CD Installation
 Installing Jenkins - https://medium.com/containerum/configuring-ci-cd-on-kubernetes-with-jenkins-89eab7234270
 
-3: 
-#Create a development namespace
+# Create a development namespace
 a) Create a file called dev-namespace.yml and copy the below content in this file.
   {
   "apiVersion": "v1",
@@ -50,19 +52,16 @@ c) To check whether the namespace is created or not, run below command.
   kube-public       Active   5d20h
   kube-system       Active   5d20h
 
-4:
- #Deploy Guest-Book App
+ # Deploy Guest-Book App
  a) go to the location ~/guest-book/examples/guestbook
  b) Run the shell script "sh k8s-guest-book.sh", which will deploy the guest-book application in the K8S cluster
 
-5:
- #Install and configure Helm in Kubernetes
+ # Install and configure Helm in Kubernetes
  a) Download the latest stable version of Helm(v2.14.1) from https://github.com/helm/helm/releases/tag/v2.14.1
  b) Untar the helm tar and sert the environment varaible for helm.
  c) Run the command "helm init --history-max 200" to initialize the helm local repository and tiller(server-side component) 
-
-6:
- #Use Helm to deploy the application to Kubernetes cluster from CI server.
+ 
+ # Use Helm to deploy the application to Kubernetes cluster from CI server.
  a) Installing the Chart
       #Add the repository to your local environment:
       $ helm repo add my-repo https://ibm.github.io/helm101/
@@ -88,8 +87,7 @@ c) To check whether the namespace is created or not, run below command.
       Specify each parameter using the --set [key=value] argument to helm install.
       $ helm install my-repo/guestbook --set service.type=NodePort
 
-7:
- #Create a monitoring namespace in the cluster
+ # Create a monitoring namespace in the cluster
   a) Create a file called dev-namespace.yml and copy the below content in this file.
   {
   "apiVersion": "v1",
@@ -112,8 +110,7 @@ c) To check whether the namespace is created or not, run below command.
       kube-system       Active   5d20h
       monitoring        Active   30s
 
-8:
-  #Setup Prometheus (in monitoring namespace) for gathering host/container metrics along with health check status of the application
+  # Setup Prometheus (in monitoring namespace) for gathering host/container metrics along with health check status of the   application
     a) Monitoring Kubernetes workloads with Prometheus and Thanos
        What to Monitor?
           Monitoring Kubernetes should take into account all three layers mentioned above.
@@ -251,16 +248,13 @@ c) To check whether the namespace is created or not, run below command.
 
         kubectl -n thanos port-forward svc/grafana 8080:80
         And… viola! you have completed the deployment of a highly-available monitoring solution, based on Prometheus, with long-term storage and a centralized view across multiple clusters!
-
-9:
-   #Create a dashboard using Grafana to help visualize the Node/Container/API Server etc. metrics from prometheus server. Optionally create a custom dashboard on Grafana
+        
+# Create a dashboard using Grafana to help visualize the Node/Container/API Server etc. metrics from prometheus server. Optionally create a custom dashboard on Grafana
 
    Grafana:
       helm install --name my-release stable/grafana
-
-10: 
-   #Setup log analysis using Elasticsearch, Fluentd (or Filebeat), Kibana.
+# Setup log analysis using Elasticsearch, Fluentd (or Filebeat), Kibana.
     a) Create a headless service called "elasticsearch" that will define a DNS domain for the PODS.
 
 
-11) Demonstrate Blue/Green and Canary deployment for the application (For example: Change the background color or font in the new version  etc.)    
+# Demonstrate Blue/Green and Canary deployment for the application (For example: Change the background color or font in the new version  etc.)    
