@@ -258,3 +258,4 @@ c) To check whether the namespace is created or not, run below command.
 
 
 # Demonstrate Blue/Green and Canary deployment for the application (For example: Change the background color or font in the new version  etc.)    
+a) For the first time we deployed the application the version of the app is 
