@@ -57,9 +57,8 @@ c) To check whether the namespace is created or not, run below command.
  b) Run the shell script "sh k8s-guest-book.sh", which will deploy the guest-book application in the K8S cluster
 
  # Install and configure Helm in Kubernetes
- a) Download the latest stable version of Helm(v2.14.1) from https://github.com/helm/helm/releases/tag/v2.14.1
- b) Untar the helm tar and sert the environment varaible for helm.
- c) Run the command "helm init --history-max 200" to initialize the helm local repository and tiller(server-side component) 
+ $ wget https://get.helm.sh/helm-v2.14.1-linux-amd64.tar.gz && tar -xzvf helm-v2.14.1-linux-amd64.tar.gz && sudo mv linux-  amd64/helm /usr/local/bin && sudo -i -u jenkins && mkdir .kube ; $ touch .kube/config
+  Run the command "helm init --history-max 200" to initialize the helm local repository and tiller(server-side component) 
  
  # Use Helm to deploy the application to Kubernetes cluster from CI server.
  a) Installing the Chart
@@ -67,7 +66,7 @@ c) To check whether the namespace is created or not, run below command.
       $ helm repo add my-repo https://ibm.github.io/helm101/
 
       To install the chart with the default release name:
-      $ helm install my-repo/guestbook
+      $ helm install jenkins-ci-cd-with-helm/charts/guestbook
 
       To install the chart with your preference of release name, for example, my-release:
       $ helm install my-repo/guestbook --name my-release
@@ -76,7 +75,7 @@ c) To check whether the namespace is created or not, run below command.
       The following tables lists the configurable parameters of the chart and their default values.
 
       Parameter           Description           Default
-      image.repository    Image repository      ibmcom/guestbook
+      image.repository    Image repository      guestbook
       image.tag           Image tag             v1
       image.pullPolicy    Image pull policy     Always
       service.type        Service type          LoadBalancer
@@ -253,9 +252,55 @@ c) To check whether the namespace is created or not, run below command.
 
    Grafana:
       helm install --name my-release stable/grafana
+      
+    Once the Grafan dashboard is up and running, login to Grafana dashboard and configure Elasticsearch as Data Source and import the Kubernetes Cluster (Prometheus) into Grafana. So all the K8S metrics data which is stored in Prometheus will be displayed in Grafana now
 # Setup log analysis using Elasticsearch, Fluentd (or Filebeat), Kibana.
     a) Create a headless service called "elasticsearch" that will define a DNS domain for the PODS.
+    use Elasticsearch and Kibana for cluster logging, you should set the following environment variable as shown below when creating your cluster with kube-up.sh:
+    $ KUBE_LOGGING_DESTINATION=elasticsearch
+Now, when you create a cluster, a message will indicate that the Fluentd log collection daemons that run on each node will target Elasticsearch:
+$ cluster/kube-up.sh
+
+Project: kubernetes-satnam
+Zone: us-central1-b
+... calling kube-up
+Project: kubernetes-satnam
+Zone: us-central1-b
++++ Staging server tars to Google Storage: gs://kubernetes-staging-e6d0e81793/devel
++++ kubernetes-server-linux-amd64.tar.gz uploaded (sha1 = 6987c098277871b6d69623141276924ab687f89d)
++++ kubernetes-salt.tar.gz uploaded (sha1 = bdfc83ed6b60fa9e3bff9004b542cfc643464cd0)
+Looking for already existing resources
+Starting master and configuring firewalls
+Created [https://www.googleapis.com/compute/v1/projects/kubernetes-satnam/zones/us-central1-b/disks/kubernetes-master-pd].
+NAME                 ZONE          SIZE_GB TYPE   STATUS
+kubernetes-master-pd us-central1-b 20      pd-ssd READY
+Created [https://www.googleapis.com/compute/v1/projects/kubernetes-satnam/regions/us-central1/addresses/kubernetes-master-ip].
++++ Logging using Fluentd to elasticsearch
+
+The per-node Fluentd pods, the Elasticsearch pods, and the Kibana pods should all be running in the kube-system namespace soon after the cluster comes to life.
+
+kubectl get pods --namespace=kube-system
+NAME                                           READY     STATUS    RESTARTS   AGE
+elasticsearch-logging-v1-78nog                 1/1       Running   0          2h
+elasticsearch-logging-v1-nj2nb                 1/1       Running   0          2h
+fluentd-elasticsearch-kubernetes-node-5oq0     1/1       Running   0          2h
+fluentd-elasticsearch-kubernetes-node-6896     1/1       Running   0          2h
+fluentd-elasticsearch-kubernetes-node-l1ds     1/1       Running   0          2h
+fluentd-elasticsearch-kubernetes-node-lz9j     1/1       Running   0          2h
+kibana-logging-v1-bhpo8                        1/1       Running   0          2h
+kube-dns-v3-7r1l9                              3/3       Running   0          2h
+monitoring-heapster-v4-yl332                   1/1       Running   1          2h
+monitoring-influx-grafana-v1-o79xf             2/2       Running   0          2h
+
+The fluentd-elasticsearch pods gather logs from each node and send them to the elasticsearch-logging pods, which are part of a service named elasticsearch-logging. These Elasticsearch pods store the logs and expose them via a REST API. The kibana-logging pod provides a web UI for reading the logs stored in Elasticsearch, and is part of a service named kibana-logging.
+
+The Elasticsearch and Kibana services are both in the kube-system namespace and are not directly exposed via a publicly reachable IP address. To reach them, follow the instructions for Accessing services running in a cluster.
+We can now access the Kibana dashboard and run the queries to monitor the logs.
 
 
 # Demonstrate Blue/Green and Canary deployment for the application (For example: Change the background color or font in the new version  etc.)    
-a) For the first time we deployed the application the version of the app is 
+a) For the first time we deployed the application the version of the app is gcr.io/google-samples/gb-frontend:v4
+b) Once we change the content in the source code, run the below command
+  $ helm upgrade myrelease repo/guestbook  --set=image.tag=v5
+c) Now we can see the latest changes in the browser.
+
