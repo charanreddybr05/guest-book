@@ -57,9 +57,8 @@ c) To check whether the namespace is created or not, run below command.
  b) Run the shell script "sh k8s-guest-book.sh", which will deploy the guest-book application in the K8S cluster
 
  # Install and configure Helm in Kubernetes
- a) Download the latest stable version of Helm(v2.14.1) from https://github.com/helm/helm/releases/tag/v2.14.1
- b) Untar the helm tar and sert the environment varaible for helm.
- c) Run the command "helm init --history-max 200" to initialize the helm local repository and tiller(server-side component) 
+ $ wget https://get.helm.sh/helm-v2.14.1-linux-amd64.tar.gz && tar -xzvf helm-v2.14.1-linux-amd64.tar.gz && sudo mv linux-  amd64/helm /usr/local/bin && sudo -i -u jenkins && mkdir .kube ; $ touch .kube/config
+  Run the command "helm init --history-max 200" to initialize the helm local repository and tiller(server-side component) 
  
  # Use Helm to deploy the application to Kubernetes cluster from CI server.
  a) Installing the Chart
@@ -67,7 +66,7 @@ c) To check whether the namespace is created or not, run below command.
       $ helm repo add my-repo https://ibm.github.io/helm101/
 
       To install the chart with the default release name:
-      $ helm install my-repo/guestbook
+      $ helm install jenkins-ci-cd-with-helm/charts/guestbook
 
       To install the chart with your preference of release name, for example, my-release:
       $ helm install my-repo/guestbook --name my-release
@@ -76,7 +75,7 @@ c) To check whether the namespace is created or not, run below command.
       The following tables lists the configurable parameters of the chart and their default values.
 
       Parameter           Description           Default
-      image.repository    Image repository      ibmcom/guestbook
+      image.repository    Image repository      guestbook
       image.tag           Image tag             v1
       image.pullPolicy    Image pull policy     Always
       service.type        Service type          LoadBalancer
@@ -258,4 +257,8 @@ c) To check whether the namespace is created or not, run below command.
 
 
 # Demonstrate Blue/Green and Canary deployment for the application (For example: Change the background color or font in the new version  etc.)    
-a) For the first time we deployed the application the version of the app is 
+a) For the first time we deployed the application the version of the app is gcr.io/google-samples/gb-frontend:v4
+b) Once we change the content in the source code, run the below command
+  $ helm upgrade myrelease repo/guestbook  --set=image.tag=v5
+c) Now we can see the latest changes in the browser.
+
